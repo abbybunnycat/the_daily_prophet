@@ -170,12 +170,16 @@
             <i class="fa-solid fa-feather-pointed text-amber-400"></i>
             <span id="owl-status">貓頭鷹特快專遞：今日版面已自動送達</span>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             <select id="edition-region" class="bg-stone-800 border border-stone-600 text-stone-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-amber-500">
                 <option value="台灣與國際重要焦點">版面：台灣與全球麻瓜界焦點</option>
                 <option value="全球科技與AI最新突破">版面：魔法與科技前沿</option>
                 <option value="國際財經與金融趨勢">版面：古靈閣財經專刊</option>
             </select>
+            <button onclick="openApiKeyModal()" class="bg-stone-800 hover:bg-stone-700 text-amber-300 border border-stone-600 px-2.5 py-1 rounded shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95" title="設定您的 Gemini API Key 以啟用完整 AI 魔法">
+                <i class="fa-solid fa-key"></i>
+                <span id="key-btn-text">設定魔法金鑰</span>
+            </button>
             <button id="refresh-owl-btn" onclick="summonTodaysNewspaper(true)" class="bg-amber-900/80 hover:bg-amber-800 text-amber-100 border border-amber-600/50 px-3 py-1 rounded shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95">
                 <i class="fa-solid fa-wand-sparkles"></i>
                 <span>重新召喚今日新聞</span>
@@ -401,18 +405,94 @@
         </div>
     </div>
 
+    <!-- 設定 Gemini API Key 的魔法密鑰彈出視窗 -->
+    <div id="apikey-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4 backdrop-blur-xs">
+        <div class="newspaper-sheet max-w-md w-full p-6 border-4 border-stone-950 shadow-2xl relative text-stone-900">
+            <button onclick="closeApiKeyModal()" class="absolute top-3 right-3 w-8 h-8 border-2 border-stone-900 flex items-center justify-center font-black hover:bg-stone-900 hover:text-[#e8dec8] transition cursor-pointer">
+                ✕
+            </button>
+            <div class="text-xs font-bold uppercase tracking-widest text-stone-700 mb-1">★ 魔法部機密通行證 ★</div>
+            <h3 class="text-xl font-black text-stone-950 mb-2 border-b-2 border-stone-900 pb-2">設定 Gemini API 魔法金鑰</h3>
+            <p class="text-xs leading-relaxed text-stone-800 mb-3">
+                在 GitHub Pages 等獨立網站上運行時，需要輸入您的 <strong>Gemini API Key</strong> 才能召喚即時 AI 搜尋與會動的魔法新聞照片。金鑰僅會安全保存在您本機瀏覽器中。
+            </p>
+            <div class="mb-4">
+                <label class="block text-xs font-bold mb-1">請貼上您的 API Key：</label>
+                <input type="password" id="api-key-input" placeholder="AIzaSy..." class="w-full px-3 py-2 border-2 border-stone-800 bg-[#f4ebd9] text-stone-900 text-sm focus:outline-none">
+                <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="inline-block mt-1.5 text-[11px] font-bold text-amber-900 underline hover:text-amber-700">
+                    <i class="fa-solid fa-up-right-from-square mr-1"></i>前往 Google AI Studio 免費取得金鑰
+                </a>
+            </div>
+            <div class="flex justify-end gap-2">
+                <button onclick="clearApiKey()" class="border border-stone-800 text-stone-800 px-3 py-1.5 text-xs font-bold hover:bg-stone-800/10 cursor-pointer">
+                    清除金鑰
+                </button>
+                <button onclick="saveApiKey()" class="bg-stone-900 text-[#e8dec8] px-4 py-1.5 text-xs font-bold tracking-wider hover:bg-stone-800 cursor-pointer">
+                    儲存並召喚新聞
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Gemini API 設定 (執行環境會自動注入金鑰)
-        const apiKey = "";
+        // 預設環境金鑰（若部署在外部網站，會優先讀取使用者儲存在瀏覽器的金鑰）
+        const defaultEnvKey = "";
         let currentNewsData = null;
 
-        // 取得今日日期字串 (YYYY-MM-DD) 作為每日自動更新的快取鍵值
+        function getActiveApiKey() {
+            const savedKey = localStorage.getItem('daily_prophet_gemini_key');
+            if (savedKey && savedKey.trim() !== "") return savedKey.trim();
+            return defaultEnvKey;
+        }
+
+        function updateKeyButtonStatus() {
+            const key = getActiveApiKey();
+            const btnText = document.getElementById('key-btn-text');
+            if (btnText) {
+                btnText.textContent = key ? '魔法金鑰已啟動' : '設定魔法金鑰';
+            }
+        }
+
+        function openApiKeyModal() {
+            const modal = document.getElementById('apikey-modal');
+            document.getElementById('api-key-input').value = localStorage.getItem('daily_prophet_gemini_key') || '';
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeApiKeyModal() {
+            const modal = document.getElementById('apikey-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveApiKey() {
+            const val = document.getElementById('api-key-input').value.trim();
+            if (val) {
+                localStorage.setItem('daily_prophet_gemini_key', val);
+            } else {
+                localStorage.removeItem('daily_prophet_gemini_key');
+            }
+            updateKeyButtonStatus();
+            closeApiKeyModal();
+            summonTodaysNewspaper(true);
+        }
+
+        function clearApiKey() {
+            localStorage.removeItem('daily_prophet_gemini_key');
+            document.getElementById('api-key-input').value = '';
+            updateKeyButtonStatus();
+            closeApiKeyModal();
+            summonTodaysNewspaper(true);
+        }
+
+        // 取得今日日期字串 (YYYY-MM-DD) 作為快取與每日自動更新的判斷基準
         function getTodayKey() {
             const now = new Date();
-            const yyyy = now.getFullYear();
-            const mm = String(now.getMonth() + 1).padStart(2, '0');
-            const dd = String(now.getDate()).padStart(2, '0');
-            return `${yyyy}-${mm}-${dd}`;
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
         }
 
         // 格式化為充滿魔法報紙風格的中文與英文日期
@@ -456,6 +536,10 @@
 
         // 步驟 1：使用 Google Search Grounding 獲取今日真實重要新聞並轉化為預言家日報文風
         async function fetchTodaysNewsFromGemini(regionTopic) {
+            const activeKey = getActiveApiKey();
+            if (!activeKey) {
+                throw new Error("NO_API_KEY");
+            }
             const todayStr = getTodayKey();
             const systemPrompt = `你是《預言家日報》(The Daily Prophet) 的首席魔法記者。
 你的任務是搜尋「今天 (${todayStr})」真實世界發生的最重要新聞（聚焦於：${regionTopic}），並用「繁體中文」撰寫成哈利波特魔法世界報紙的報導風格！
@@ -506,7 +590,7 @@
   ]
 }`;
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${activeKey}`;
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
                 tools: [{ "google_search": {} }],
@@ -543,15 +627,21 @@
 
         // 步驟 2：使用 Gemini 圖像生成模型為頭版製作復古新聞攝影圖片（搭配 CSS 魔法動態效果）
         async function generateMagicalNewsPhoto(imagePrompt) {
+            const activeKey = getActiveApiKey();
             const photoImg = document.getElementById('main-moving-photo');
             const badge = document.getElementById('photo-generating-badge');
             
+            if (!activeKey) {
+                badge.innerHTML = `<i class="fa-solid fa-hat-wizard text-4xl mb-2 text-amber-300"></i><span class="text-xs px-4">目前為免金鑰公開新聞模式（設定 Gemini API Key 可解鎖 AI 會動的頭版照片）</span>`;
+                return null;
+            }
+
             badge.classList.remove('hidden');
             photoImg.classList.add('hidden');
 
             try {
                 const fullPrompt = `${imagePrompt}. Style of an authentic 1930s vintage black and white newspaper photograph, dramatic editorial photojournalism, slight film grain, high contrast, atmospheric, no words or text.`;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent?key=${activeKey}`;
                 const payload = {
                     contents: [{
                         parts: [{ text: fullPrompt }]
@@ -567,99 +657,138 @@
                     body: JSON.stringify(payload)
                 });
 
-                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-                if (base64Data) {
-                    const imageUrl = `data:image/png;base64,${base64Data}`;
-                    photoImg.src = imageUrl;
-                    photoImg.onload = () => {
-                        badge.classList.add('hidden');
-                        photoImg.classList.remove('hidden');
-                    };
-                    return imageUrl;
+                const parts = result.candidates?.[0]?.content?.parts || [];
+                const imagePart = parts.find(p => p.inlineData && p.inlineData.data);
+                if (imagePart) {
+                    const mimeType = imagePart.inlineData.mimeType || 'image/png';
+                    const dataUrl = `data:${mimeType};base64,${imagePart.inlineData.data}`;
+                    photoImg.src = dataUrl;
+                    photoImg.classList.remove('hidden');
+                    badge.classList.add('hidden');
+                    return dataUrl;
+                } else {
+                    badge.innerHTML = `<i class="fa-solid fa-camera-retro text-3xl mb-2 text-amber-300"></i><span class="text-xs px-4">魔法攝影師底片顯影失敗，暫不顯示動態相片</span>`;
+                    return null;
                 }
-            } catch (e) {
-                // 若圖片生成失敗，使用復古魔法插畫 SVG 備援
-                badge.innerHTML = `<i class="fa-solid fa-hat-wizard text-4xl mb-2 text-amber-300"></i><span class="text-xs">魔法顯影受到干擾，已切換為魔法部檔案影像</span>`;
+            } catch (err) {
+                badge.innerHTML = `<i class="fa-solid fa-camera-retro text-3xl mb-2 text-amber-300"></i><span class="text-xs px-4">魔法攝影師忙碌中，暫無法生成現場影像</span>`;
+                return null;
             }
-            return null;
         }
 
-        // 將新聞資料渲染至報紙版面上
-        function renderNewspaper(data, cachedImageUrl = null) {
-            currentNewsData = data;
+        // 將新聞資料渲染至預言家日報版面
+        function renderNewspaper(newsData, cachedImageUrl = null) {
+            currentNewsData = newsData;
 
-            document.getElementById('magic-weather').textContent = `今日天象：${data.weather || '魔法部晴空萬里'}`;
-            document.getElementById('daily-horoscope').textContent = `「${data.horoscope}」`;
-            document.getElementById('headline-tag').textContent = data.headlineTag || '今日頭號震撼彈';
-
-            // 頭條新聞
-            document.getElementById('main-headline').textContent = data.mainNews.title;
-            document.getElementById('main-subheadline').textContent = data.mainNews.subtitle;
-            document.getElementById('main-article-p1').textContent = data.mainNews.paragraph1;
-            document.getElementById('main-article-p2').textContent = data.mainNews.paragraph2;
-            document.getElementById('prophet-commentary').textContent = data.mainNews.commentary;
-            document.getElementById('photo-caption').textContent = `▲ ${data.mainNews.photoCaption}`;
-
-            // 次要新聞 (4則)
-            const side = data.sideNews || [];
-            if (side[0]) {
-                document.getElementById('news2-category').textContent = side[0].category;
-                document.getElementById('news2-title').textContent = side[0].title;
-                document.getElementById('news2-summary').textContent = side[0].summary;
-            }
-            if (side[1]) {
-                document.getElementById('news3-category').textContent = side[1].category;
-                document.getElementById('news3-title').textContent = side[1].title;
-                document.getElementById('news3-summary').textContent = side[1].summary;
-            }
-            if (side[2]) {
-                document.getElementById('news4-category').textContent = side[2].category;
-                document.getElementById('news4-title').textContent = side[2].title;
-                document.getElementById('news4-summary').textContent = side[2].summary;
-            }
-            if (side[3]) {
-                document.getElementById('news5-category').textContent = side[3].category;
-                document.getElementById('news5-title').textContent = side[3].title;
-                document.getElementById('news5-summary').textContent = side[3].summary;
-            }
-
-            // 來源出處
-            if (data.sources && data.sources.length > 0) {
-                document.getElementById('news-sources').textContent = data.sources.join(' • ');
-            }
-
-            // 顯示報紙內容，隱藏載入動畫
             document.getElementById('loading-overlay').classList.add('hidden');
             document.getElementById('error-box').classList.add('hidden');
             document.getElementById('news-content').classList.remove('hidden');
 
-            // 處理動態相片
-            if (cachedImageUrl) {
-                const photoImg = document.getElementById('main-moving-photo');
-                const badge = document.getElementById('photo-generating-badge');
-                photoImg.src = cachedImageUrl;
-                badge.classList.add('hidden');
-                photoImg.classList.remove('hidden');
-            } else if (data.mainNews.imagePrompt) {
-                generateMagicalNewsPhoto(data.mainNews.imagePrompt).then(imgUrl => {
-                    if (imgUrl) {
-                        // 嘗試將圖片存入今日快取（若容量允許）
-                        try {
-                            const region = document.getElementById('edition-region').value;
-                            const cacheKey = `daily_prophet_${getTodayKey()}_${region}`;
-                            const existing = JSON.parse(localStorage.getItem(cacheKey) || '{}');
-                            existing.imageUrl = imgUrl;
-                            localStorage.setItem(cacheKey, JSON.stringify(existing));
-                        } catch (e) {
-                            // 忽略 localStorage 容量限制錯誤
-                        }
-                    }
-                });
+            document.getElementById('magic-weather').textContent = `今日天氣：${newsData.weather || '倫敦微霧 / 台北晴時多雲'}`;
+            document.getElementById('daily-horoscope').textContent = `「${newsData.horoscope || '星象顯示今日適合掌握天下大事。'}」`;
+            document.getElementById('headline-tag').textContent = newsData.headlineTag || '今日頭號震撼彈';
+
+            const main = newsData.mainNews || {};
+            document.getElementById('main-headline').textContent = main.title || '';
+            document.getElementById('main-subheadline').textContent = main.subtitle || '';
+            document.getElementById('main-article-p1').textContent = main.paragraph1 || '';
+            document.getElementById('main-article-p2').textContent = main.paragraph2 || '';
+            document.getElementById('prophet-commentary').textContent = main.commentary || '';
+            document.getElementById('photo-caption').textContent = `▲ ${main.photoCaption || '現場魔法攝影師捕捉到的即時動態畫面。'}`;
+
+            // 渲染次要新聞 (2~5 則)
+            const sideList = newsData.sideNews || [];
+            for (let i = 0; i < 4; i++) {
+                const idx = i + 2;
+                const item = sideList[i];
+                const catEl = document.getElementById(`news${idx}-category`);
+                const titleEl = document.getElementById(`news${idx}-title`);
+                const sumEl = document.getElementById(`news${idx}-summary`);
+                if (item) {
+                    if (catEl) catEl.textContent = item.category || '即時快訊';
+                    if (titleEl) titleEl.textContent = item.title || '';
+                    if (sumEl) sumEl.textContent = item.summary || '';
+                }
             }
+
+            // 渲染來源出處
+            const sourcesEl = document.getElementById('news-sources');
+            if (sourcesEl) {
+                sourcesEl.textContent = (newsData.sources && newsData.sources.length > 0)
+                    ? newsData.sources.join(' • ')
+                    : '透過貓頭鷹特快網即時彙整今日最新報導';
+            }
+
+            // 處理頭版魔法動態照片
+            const photoImg = document.getElementById('main-moving-photo');
+            const badge = document.getElementById('photo-generating-badge');
+            if (cachedImageUrl) {
+                photoImg.src = cachedImageUrl;
+                photoImg.classList.remove('hidden');
+                badge.classList.add('hidden');
+            } else if (main.imagePrompt && main.imagePrompt !== 'fallback') {
+                generateMagicalNewsPhoto(main.imagePrompt);
+            } else {
+                photoImg.classList.add('hidden');
+                badge.classList.remove('hidden');
+                badge.innerHTML = `<i class="fa-solid fa-hat-wizard text-4xl mb-2 text-amber-300"></i><span class="text-xs px-4">目前為免金鑰公開新聞模式（設定 Gemini API Key 可解鎖 AI 會動的頭版照片）</span>`;
+            }
+        }
+
+        // 公開即時新聞備援機制（當在 GitHub Pages 且尚未輸入 Gemini API Key 時自動啟用，確保一定連得上）
+        async function fetchPublicRssFallback(regionTopic) {
+            let query = "台灣 重要新聞";
+            if (regionTopic.includes("科技")) query = "科技 AI 最新突破";
+            if (regionTopic.includes("財經")) query = "國際 財經 金融";
+
+            const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=zh-TW&gl=TW&ceid=TW:zh-Hant`;
+            const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+
+            const res = await fetch(apiUrl);
+            if (!res.ok) throw new Error("公開貓頭鷹通訊網暫時繁忙");
+            const data = await res.json();
+            const items = (data.items || []).slice(0, 5);
+            if (items.length === 0) throw new Error("今日尚未收到最新信件");
+
+            const cleanText = (html) => {
+                const tmp = document.createElement("DIV");
+                tmp.innerHTML = html || "";
+                return (tmp.textContent || tmp.innerText || "").replace(/\s+/g, " ").trim();
+            };
+
+            const mainItem = items[0];
+            const mainDesc = cleanText(mainItem.description) || mainItem.title;
+
+            return {
+                weather: "麻瓜界氣流穩定，貓頭鷹飛行順暢",
+                horoscope: "星象顯示今日適合掌握天下大事，設定魔法金鑰將可解鎖更深層的預言影像。",
+                headlineTag: "今日即時號外（公開新聞連線）",
+                mainNews: {
+                    title: mainItem.title.split(" - ")[0],
+                    subtitle: `來源：${mainItem.author || mainItem.title.split(" - ")[1] || "全球即時電訊"}`,
+                    paragraph1: `根據貓頭鷹特快專遞從麻瓜界傳回的最新消息，今日最受矚目的焦點集中在「${mainItem.title.split(" - ")[0]}」。${mainDesc}`,
+                    paragraph2: `魔法部資訊司正密切關注此事件對全球局勢的後續影響。若您希望由《預言家日報》首席記者麗塔·史譏為您撰寫深度魔法評論並生成會動的頭版照片，請點擊右上角「設定魔法金鑰」。`,
+                    commentary: "真相往往隱藏在字裡行間，唯有持續關注每日預言者，方能洞察先機！",
+                    photoCaption: "魔法部檔案影像（輸入 Gemini API Key 可自動生成現場動態照片）",
+                    imagePrompt: "fallback"
+                },
+                sideNews: items.slice(1, 5).map((item, idx) => {
+                    const categories = ["國際風雲", "前沿動態", "財經觀察", "社會焦點"];
+                    const desc = cleanText(item.description) || item.title;
+                    return {
+                        category: categories[idx] || "即時快訊",
+                        title: item.title.split(" - ")[0],
+                        summary: desc.slice(0, 85) + (desc.length > 85 ? "..." : ""),
+                        fullText: `${item.title}\n\n發布時間：${item.pubDate}\n\n${desc}`
+                    };
+                }),
+                sources: items.map(i => i.title.split(" - ")[1]).filter(Boolean).slice(0, 4)
+            };
         }
 
         // 召喚今日報紙主流程（具備每日自動檢查與快取機制）
         async function summonTodaysNewspaper(forceRefresh = false) {
+            updateKeyButtonStatus();
             const todayKey = getTodayKey();
             const region = document.getElementById('edition-region').value;
             const cacheKey = `daily_prophet_${todayKey}_${region}`;
@@ -691,7 +820,14 @@
             statusEl.textContent = `貓頭鷹正在飛往全球新聞現場採集 (${todayKey})...`;
 
             try {
-                const newsData = await fetchTodaysNewsFromGemini(region);
+                let newsData;
+                const activeKey = getActiveApiKey();
+                if (activeKey) {
+                    newsData = await fetchTodaysNewsFromGemini(region);
+                } else {
+                    // 在 GitHub Pages 上若未設定金鑰，自動切換為公開即時新聞 RSS，確保不報錯
+                    newsData = await fetchPublicRssFallback(region);
+                }
                 
                 // 儲存今日新聞至 localStorage（並清除舊日期的快取以節省空間）
                 try {
@@ -703,13 +839,22 @@
                     localStorage.setItem(cacheKey, JSON.stringify({ news: newsData }));
                 } catch (e) {}
 
-                statusEl.textContent = `貓頭鷹特快專遞：今日 (${todayKey}) 頭條已新鮮出爐！`;
+                statusEl.textContent = activeKey 
+                    ? `貓頭鷹特快專遞：今日 (${todayKey}) 魔法深度頭條已新鮮出爐！`
+                    : `公開貓頭鷹連線：已送達今日 (${todayKey}) 即時新聞（設定金鑰可啟用 AI 動態照片）`;
                 renderNewspaper(newsData, null);
             } catch (error) {
-                document.getElementById('loading-overlay').classList.add('hidden');
-                document.getElementById('error-box').classList.remove('hidden');
-                document.getElementById('error-message').textContent = `魔法連線暫時中斷（${error.message}），請點擊重新召喚。`;
-                statusEl.textContent = `貓頭鷹派報受阻`;
+                // 若 Gemini 呼叫失敗（例如金鑰過期或額度問題），自動嘗試退回公開新聞源
+                try {
+                    const fallbackData = await fetchPublicRssFallback(region);
+                    statusEl.textContent = `已切換為公開即時新聞備援 (${todayKey})`;
+                    renderNewspaper(fallbackData, null);
+                } catch (fallbackErr) {
+                    document.getElementById('loading-overlay').classList.add('hidden');
+                    document.getElementById('error-box').classList.remove('hidden');
+                    document.getElementById('error-message').textContent = `魔法連線暫時中斷（${error.message}），請點擊設定魔法金鑰或重新召喚。`;
+                    statusEl.textContent = `貓頭鷹派報受阻`;
+                }
             }
         }
 
