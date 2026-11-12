@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>預言家日報 | THE DAILY PROPHET</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: 襯線字體與復古報紙字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Noto+Serif+TC:wght@400;600;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <!-- Font Awesome for magical icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* 自訂報紙復古質感與魔法動態效果 */
+        :root {
+            --paper-bg: #e8dec8;
+            --paper-dark: #d5c7a9;
+            --ink-color: #1c1917;
+            --ink-faded: #44403c;
+            --accent-gold: #854d0e;
+        }
+
+        body {
+            background-color: #292524;
+            background-image: radial-gradient(#44403c 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--ink-color);
+            font-family: 'Noto Serif TC', 'Playfair Display', serif;
+            overflow-x: hidden;
+        }
+
+        /* 羊皮紙與舊報紙紋理 */
+        .newspaper-sheet {
+            background-color: var(--paper-bg);
+            background-image: 
+                radial-gradient(rgba(133, 77, 14, 0.08) 15%, transparent 16%),
+                radial-gradient(rgba(28, 25, 23, 0.05) 15%, transparent 16%),
+                linear-gradient(to right, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0) 5%, rgba(0,0,0,0) 95%, rgba(0,0,0,0.08) 100%);
+            background-size: 60px 60px, 60px 60px, 100% 100%;
+            background-position: 0 0, 30px 30px, 0 0;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), inset 0 0 80px rgba(139, 115, 85, 0.35);
+            position: relative;
+        }
+
+        /* 報紙折痕與雜訊效果 */
+        .newspaper-sheet::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.06'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* 哥德式與古典報頭字體 */
+        .font-masthead {
+            font-family: 'UnifrakturMaguntia', 'Cinzel Decorative', 'Noto Serif TC', serif;
+        }
+        .font-cinzel {
+            font-family: 'Cinzel Decorative', 'Noto Serif TC', serif;
+        }
+
+        /* 報紙多層分隔線 */
+        .border-double-ink {
+            border-top: 4px solid var(--ink-color);
+            border-bottom: 1px solid var(--ink-color);
+            padding-top: 2px;
+            padding-bottom: 2px;
+        }
+        .border-double-ink-bottom {
+            border-bottom: 4px solid var(--ink-color);
+            border-top: 1px solid var(--ink-color);
+        }
+
+        /* 魔法會動的相片效果 (Ken Burns + 復古黑白雜訊閃爍) */
+        .magic-photo-frame {
+            position: relative;
+            overflow: hidden;
+            border: 3px solid var(--ink-color);
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+            background-color: #1c1917;
+        }
+
+        .magic-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(125%) sepia(25%) brightness(92%);
+            animation: wizardPhotoMotion 14s ease-in-out infinite alternate;
+            transform-origin: center center;
+        }
+
+        /* 模擬魔法世界相片裡人物/場景的呼吸與微幅移動感 */
+        @keyframes wizardPhotoMotion {
+            0% {
+                transform: scale(1.02) translate(0px, 0px) rotate(0deg);
+                filter: grayscale(100%) contrast(120%) sepia(20%) brightness(90%);
+            }
+            33% {
+                transform: scale(1.12) translate(-8px, -4px) rotate(-0.6deg);
+                filter: grayscale(100%) contrast(130%) sepia(30%) brightness(96%);
+            }
+            66% {
+                transform: scale(1.08) translate(6px, -6px) rotate(0.5deg);
+                filter: grayscale(100%) contrast(125%) sepia(25%) brightness(88%);
+            }
+            100% {
+                transform: scale(1.15) translate(-4px, 5px) rotate(-0.3deg);
+                filter: grayscale(100%) contrast(135%) sepia(35%) brightness(94%);
+            }
+        }
+
+        /* 老電影/魔法相片掃描線與暗角 */
+        .magic-photo-overlay {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, transparent 50%, rgba(15, 12, 10, 0.75) 100%),
+                        repeating-linear-gradient(0deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 1px, transparent 1px, transparent 3px);
+            pointer-events: none;
+            animation: filmFlicker 4s infinite;
+        }
+
+        @keyframes filmFlicker {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 0.95; }
+            52% { opacity: 0.75; }
+            54% { opacity: 0.9; }
+        }
+
+        /* 首字下沉 (Drop Cap) */
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 3.4rem;
+            line-height: 0.85;
+            padding-top: 4px;
+            padding-right: 10px;
+            padding-left: 2px;
+            font-weight: 900;
+            color: var(--ink-color);
+            font-family: 'Cinzel Decorative', 'Noto Serif TC', serif;
+        }
+
+        /* 旋轉魔法羅盤載入動畫 */
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spinSlow 8s linear infinite;
+        }
+
+        /* 隱藏滾動條但保持可滾動 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-4 px-2 sm:py-8 sm:px-6 flex flex-col items-center justify-start">
+
+    <!-- 頂部控制列 (貓頭鷹派報狀態與手動重新召喚按鈕) -->
+    <div class="w-full max-w-5xl mb-4 flex flex-wrap items-center justify-between gap-2 text-stone-300 text-xs sm:text-sm px-2">
+        <div class="flex items-center gap-2">
+            <i class="fa-solid fa-feather-pointed text-amber-400"></i>
+            <span id="owl-status">貓頭鷹特快專遞：今日版面已自動送達</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <select id="edition-region" class="bg-stone-800 border border-stone-600 text-stone-200 rounded px-2 py-1 text-xs focus:outline-none focus:border-amber-500">
+                <option value="台灣與國際重要焦點">版面：台灣與全球麻瓜界焦點</option>
+                <option value="全球科技與AI最新突破">版面：魔法與科技前沿</option>
+                <option value="國際財經與金融趨勢">版面：古靈閣財經專刊</option>
+            </select>
+            <button id="refresh-owl-btn" onclick="summonTodaysNewspaper(true)" class="bg-amber-900/80 hover:bg-amber-800 text-amber-100 border border-amber-600/50 px-3 py-1 rounded shadow transition flex items-center gap-1.5 cursor-pointer active:scale-95">
+                <i class="fa-solid fa-wand-sparkles"></i>
+                <span>重新召喚今日新聞</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 預言家日報主體 -->
+    <main id="newspaper-container" class="newspaper-sheet w-full max-w-5xl p-4 sm:p-8 md:p-10 rounded-sm text-stone-900 transition-opacity duration-500">
+        
+        <!-- 報紙頂部資訊欄 -->
+        <header class="text-center mb-4">
+            <div class="flex flex-wrap justify-between items-center text-[11px] sm:text-xs font-bold tracking-widest uppercase border-b border-stone-800 pb-1.5 mb-2 text-stone-800">
+                <span>★ 魔法部核准發行 ★</span>
+                <span id="magic-weather">今日天氣：倫敦微霧 / 台北晴時多雲</span>
+                <span>售價：5 納特 (KNUTS)</span>
+            </div>
+
+            <!-- 主報頭 -->
+            <div class="py-2 sm:py-3 relative flex flex-col items-center justify-center">
+                <div class="flex items-center justify-center gap-3 sm:gap-6 w-full">
+                    <!-- 左側魔法徽章 -->
+                    <div class="hidden sm:flex flex-col items-center justify-center w-16 h-16 border-2 border-stone-900 rounded-full p-1">
+                        <div class="w-full h-full border border-stone-800 rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-hat-wizard text-2xl text-stone-900"></i>
+                        </div>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="font-cinzel text-xs sm:text-sm tracking-[0.35em] font-bold text-stone-800 mb-1">THE DAILY PROPHET</p>
+                        <h1 class="text-4xl sm:text-6xl md:text-7xl font-black tracking-wider text-stone-950 leading-none" style="text-shadow: 1px 1px 0px rgba(0,0,0,0.15);">
+                            預言家日報
+                        </h1>
+                    </div>
+
+                    <!-- 右側魔法徽章 -->
+                    <div class="hidden sm:flex flex-col items-center justify-center w-16 h-16 border-2 border-stone-900 rounded-full p-1">
+                        <div class="w-full h-full border border-stone-800 rounded-full flex items-center justify-center">
+                            <i class="fa-solid fa-dragon text-2xl text-stone-900"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 日期與期數橫幅 -->
+            <div class="border-double-ink border-double-ink-bottom py-1.5 my-2 flex flex-wrap justify-between items-center text-xs sm:text-sm font-bold px-2 bg-stone-900/5">
+                <span id="edition-number">第 14,892 期</span>
+                <span id="current-date-display" class="text-sm sm:text-base tracking-widest font-black">載入日期中...</span>
+                <span>總編輯：麗塔·史譏 (RITA SKEETER) 監製</span>
+            </div>
+        </header>
+
+        <!-- 載入中遮罩 (貓頭鷹飛送信件動畫) -->
+        <div id="loading-overlay" class="py-16 px-4 text-center flex flex-col items-center justify-center">
+            <div class="relative w-24 h-24 mb-6 flex items-center justify-center">
+                <div class="absolute inset-0 border-4 border-dashed border-stone-800 rounded-full animate-spin-slow"></div>
+                <i class="fa-solid fa-crow text-4xl text-stone-900 animate-bounce"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-black tracking-wider mb-2">貓頭鷹正在從全球各地銜回今日頭條...</h2>
+            <p id="loading-subtext" class="text-stone-700 italic text-sm sm:text-base max-w-md">
+                正在施展「顯現咒 (Aparecium)」將最新新聞墨水顯影於羊皮紙上，請稍候片刻...
+            </p>
+        </div>
+
+        <!-- 錯誤提示區塊 (若網路連線異常時顯示) -->
+        <div id="error-box" class="hidden my-6 p-4 border-2 border-stone-900 bg-red-950/10 text-center">
+            <p class="font-bold text-lg mb-1"><i class="fa-solid fa-triangle-exclamation mr-2"></i>吼吼信警告：貓頭鷹在暴風雨中迷失了方向</p>
+            <p id="error-message" class="text-sm text-stone-800 mb-3">無法取得最新預言，請點擊下方按鈕重新施法。</p>
+            <button onclick="summonTodaysNewspaper(true)" class="bg-stone-900 text-amber-100 px-4 py-1.5 text-sm font-bold rounded hover:bg-stone-800 cursor-pointer">
+                重新發送貓頭鷹
+            </button>
+        </div>
+
+        <!-- 報紙正式內容區 -->
+        <div id="news-content" class="hidden">
+            
+            <!-- 頭版大標題 -->
+            <section class="mb-6 text-center border-b-2 border-stone-900 pb-4">
+                <div class="inline-block bg-stone-900 text-[#e8dec8] text-xs font-bold px-3 py-0.5 tracking-widest uppercase mb-2">
+                    <span id="headline-tag">今日頭號震撼彈</span>
+                </div>
+                <h2 id="main-headline" class="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight text-stone-950 mb-2 uppercase">
+                    <!-- 動態填入頭條標題 -->
+                </h2>
+                <p id="main-subheadline" class="text-base sm:text-xl font-bold italic text-stone-800 max-w-3xl mx-auto">
+                    <!-- 動態填入副標題 -->
+                </p>
+            </section>
+
+            <!-- 主要版面網格：左側頭條報導與動態相片，右側側欄快訊 -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 border-b-2 border-stone-900 pb-6 mb-6">
+                
+                <!-- 左側 8 欄：頭條主視覺與深度報導 -->
+                <div class="lg:col-span-8 lg:border-r lg:border-stone-800 lg:pr-6 flex flex-col">
+                    
+                    <!-- 魔法會動的相片框 -->
+                    <figure class="mb-4">
+                        <div class="magic-photo-frame w-full h-64 sm:h-80 md:h-96 relative flex items-center justify-center">
+                            <!-- 相片生成中佔位符 -->
+                            <div id="photo-generating-badge" class="absolute inset-0 flex flex-col items-center justify-center bg-stone-900 text-amber-100/80 z-20 p-4 text-center">
+                                <i class="fa-solid fa-camera-retro text-3xl mb-2 animate-pulse"></i>
+                                <span class="text-xs sm:text-sm tracking-widest">魔法顯影藥水調製中，相片即將開始移動...</span>
+                            </div>
+                            <img id="main-moving-photo" src="" alt="魔法動態新聞照片" class="magic-photo hidden">
+                            <div class="magic-photo-overlay"></div>
+                            <div class="absolute bottom-2 right-2 bg-stone-950/80 text-[#e8dec8] text-[10px] px-2 py-0.5 tracking-widest uppercase border border-stone-600">
+                                <i class="fa-solid fa-wand-magic-sparkles mr-1 text-amber-400"></i>魔法動態影像
+                            </div>
+                        </div>
+                        <figcaption id="photo-caption" class="text-xs italic text-stone-700 mt-1.5 text-right border-b border-stone-400 pb-1">
+                            ▲ 現場魔法攝影師捕捉到的即時動態畫面。
+                        </figcaption>
+                    </figure>
+
+                    <!-- 頭條內文 (雙欄報紙排版) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm sm:text-base leading-relaxed text-justify text-stone-900">
+                        <p id="main-article-p1" class="drop-cap"></p>
+                        <div class="flex flex-col justify-between">
+                            <p id="main-article-p2" class="mb-3"></p>
+                            <div class="p-3 border border-stone-800 bg-stone-900/5 text-xs">
+                                <p class="font-bold uppercase tracking-wider mb-1"><i class="fa-solid fa-eye mr-1"></i>預言家評論：</p>
+                                <p id="prophet-commentary" class="italic text-stone-800"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側 4 欄：魔法部快訊與次要焦點 -->
+                <aside class="lg:col-span-4 flex flex-col justify-between space-y-5">
+                    
+                    <!-- 次要新聞 1 -->
+                    <article class="border-b border-stone-800 pb-4">
+                        <div class="flex items-center justify-between text-xs font-bold text-stone-700 mb-1">
+                            <span>【二版焦點】</span>
+                            <span id="news2-category">國際動態</span>
+                        </div>
+                        <h3 id="news2-title" class="text-xl sm:text-2xl font-black leading-snug mb-2 hover:underline cursor-pointer" onclick="openArticleModal(1)"></h3>
+                        <p id="news2-summary" class="text-sm leading-relaxed text-justify text-stone-800"></p>
+                    </article>
+
+                    <!-- 次要新聞 2 -->
+                    <article class="border-b border-stone-800 pb-4">
+                        <div class="flex items-center justify-between text-xs font-bold text-stone-700 mb-1">
+                            <span>【三版要聞】</span>
+                            <span id="news3-category">科技與魔法</span>
+                        </div>
+                        <h3 id="news3-title" class="text-xl sm:text-2xl font-black leading-snug mb-2 hover:underline cursor-pointer" onclick="openArticleModal(2)"></h3>
+                        <p id="news3-summary" class="text-sm leading-relaxed text-justify text-stone-800"></p>
+                    </article>
+
+                    <!-- 魔法世界小廣告 / 每日占卜框 -->
+                    <div class="border-2 border-dashed border-stone-900 p-3.5 bg-stone-900/5 text-center">
+                        <p class="font-cinzel text-xs font-bold tracking-widest uppercase mb-1">★ 崔老妮教授的每日占卜 ★</p>
+                        <p id="daily-horoscope" class="text-xs sm:text-sm italic font-semibold text-stone-900">
+                            「今日星象顯示，水星與木星交會，適合閱讀重要資訊，但請小心打翻您的南瓜汁。」
+                        </p>
+                    </div>
+
+                </aside>
+            </div>
+
+            <!-- 底部三欄新聞區 -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-6 pb-4 border-b-2 border-stone-900">
+                <!-- 新聞 4 -->
+                <article class="md:border-r md:border-stone-800 md:pr-4">
+                    <span class="inline-block bg-stone-800 text-[#e8dec8] text-[10px] font-bold px-2 py-0.5 mb-1" id="news4-category">財經快報</span>
+                    <h4 id="news4-title" class="text-lg font-black leading-snug mb-1.5 hover:underline cursor-pointer" onclick="openArticleModal(3)"></h4>
+                    <p id="news4-summary" class="text-xs sm:text-sm leading-relaxed text-justify text-stone-800"></p>
+                </article>
+
+                <!-- 新聞 5 -->
+                <article class="md:border-r md:border-stone-800 md:pr-4">
+                    <span class="inline-block bg-stone-800 text-[#e8dec8] text-[10px] font-bold px-2 py-0.5 mb-1" id="news5-category">社會觀察</span>
+                    <h4 id="news5-title" class="text-lg font-black leading-snug mb-1.5 hover:underline cursor-pointer" onclick="openArticleModal(4)"></h4>
+                    <p id="news5-summary" class="text-xs sm:text-sm leading-relaxed text-justify text-stone-800"></p>
+                </article>
+
+                <!-- 魔法廣告：衛氏巫師法寶店 / 飛天掃帚 -->
+                <div class="border-2 border-stone-900 p-3 flex flex-col justify-between bg-stone-900/10">
+                    <div>
+                        <div class="text-center border-b border-stone-800 pb-1 mb-2">
+                            <span class="text-xs font-black tracking-widest uppercase">⚡ 魁地奇精品專賣店 ⚡</span>
+                        </div>
+                        <h5 class="text-base font-black text-center mb-1">全新「火閃電至尊版」現已上市！</h5>
+                        <p class="text-xs text-justify leading-relaxed text-stone-800">
+                            十秒內加速至時速一百五十英里！配備自動煞車咒與防滑龍皮握把。斜角巷 93 號熱烈預購中，憑本報截角可免費獲得掃帚尾枝保養油一瓶。
+                        </p>
+                    </div>
+                    <div class="mt-2 pt-1 border-t border-stone-700 text-center text-[10px] font-bold tracking-wider">
+                        * 魔法部交通司提醒：飛行時請勿超速 *
+                    </div>
+                </div>
+            </section>
+
+            <!-- 報紙頁尾與新聞來源出處 -->
+            <footer class="mt-4 pt-2 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 text-[11px] text-stone-700">
+                <div>
+                    <span class="font-bold">魔法資訊來源 (麻瓜界即時連線)：</span>
+                    <span id="news-sources" class="italic">透過貓頭鷹特快網即時彙整今日最新報導</span>
+                </div>
+                <div class="font-bold">
+                    每日自動更新 • 開啟即閱今日頭條
+                </div>
+            </footer>
+
+        </div>
+    </main>
+
+    <!-- 閱讀完整報導的魔法羊皮紙彈出視窗 -->
+    <div id="article-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4 backdrop-blur-xs">
+        <div class="newspaper-sheet max-w-2xl w-full p-6 sm:p-8 border-4 border-stone-950 shadow-2xl relative max-h-[85vh] overflow-y-auto">
+            <button onclick="closeArticleModal()" class="absolute top-3 right-3 w-8 h-8 border-2 border-stone-900 flex items-center justify-center font-black hover:bg-stone-900 hover:text-[#e8dec8] transition cursor-pointer">
+                ✕
+            </button>
+            <div class="text-xs font-bold uppercase tracking-widest text-stone-700 mb-1" id="modal-category">專題報導</div>
+            <h3 id="modal-title" class="text-2xl sm:text-3xl font-black text-stone-950 mb-4 border-b-2 border-stone-900 pb-2"></h3>
+            <p id="modal-body" class="text-sm sm:text-base leading-relaxed text-justify text-stone-900 whitespace-pre-line mb-6 drop-cap"></p>
+            <div class="text-right">
+                <button onclick="closeArticleModal()" class="bg-stone-900 text-[#e8dec8] px-5 py-1.5 text-xs font-bold tracking-widest uppercase hover:bg-stone-800 cursor-pointer">
+                    闔上報導
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gemini API 設定 (執行環境會自動注入金鑰)
+        const apiKey = "";
+        let currentNewsData = null;
+
+        // 取得今日日期字串 (YYYY-MM-DD) 作為每日自動更新的快取鍵值
+        function getTodayKey() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // 格式化為充滿魔法報紙風格的中文與英文日期
+        function formatMagicalDate() {
+            const now = new Date();
+            const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+            const monthsEn = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+            
+            const year = now.getFullYear();
+            const month = now.getMonth() + 1;
+            const day = now.getDate();
+            const weekday = weekdays[now.getDay()];
+            const monthEn = monthsEn[now.getMonth()];
+
+            // 計算期數 (以基準日推算，每天自動 +1)
+            const baseDate = new Date('2025-01-01');
+            const diffDays = Math.floor((now - baseDate) / (1000 * 60 * 60 * 24));
+            const issueNum = 14800 + Math.max(1, diffDays);
+            document.getElementById('edition-number').textContent = `第 ${issueNum.toLocaleString()} 期`;
+
+            return `${year}年 ${month}月 ${day}日 ${weekday} • ${monthEn} ${day}, ${year}`;
+        }
+
+        // 指數退避重試 fetch 函式
+        async function fetchWithRetry(url, options, maxRetries = 4) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (err) {
+                    if (i === maxRetries - 1) throw err;
+                    await new Promise(res => setTimeout(res, delay));
+                    delay *= 2;
+                }
+            }
+        }
+
+        // 步驟 1：使用 Google Search Grounding 獲取今日真實重要新聞並轉化為預言家日報文風
+        async function fetchTodaysNewsFromGemini(regionTopic) {
+            const todayStr = getTodayKey();
+            const systemPrompt = `你是《預言家日報》(The Daily Prophet) 的首席魔法記者。
+你的任務是搜尋「今天 (${todayStr})」真實世界發生的最重要新聞（聚焦於：${regionTopic}），並用「繁體中文」撰寫成哈利波特魔法世界報紙的報導風格！
+規則：
+1. 新聞事件必須是今天或最近24小時內真實發生的重大新聞，絕不可捏造假新聞。
+2. 敘事口吻要帶有《預言家日報》的戲劇性、典雅復古感（例如稱呼一般社會為「麻瓜界」或「全球各地」，稱專家為「智者/預言家」，但保留真實的人名、地名與事件核心事實，讓讀者能清楚看懂今天發生了什麼大事）。
+3. 必須嚴格回傳合法的 JSON 格式，不要包含任何 Markdown 標記（如 \`\`\`json）。`;
+
+            const userQuery = `請搜尋今天 (${todayStr}) ${regionTopic} 的 5 則最重要即時新聞，並按照以下 JSON 結構輸出：
+{
+  "weather": "一句充滿魔法風味的今日天氣預報",
+  "horoscope": "一句崔老妮教授風格的今日簡短占卜",
+  "headlineTag": "頭版標籤（例如：今日頭號震撼彈 / 緊急號外）",
+  "mainNews": {
+    "title": "極具震撼力的報紙頭版大標題（15-24字以內）",
+    "subtitle": "副標題（一句話點出新聞核心）",
+    "paragraph1": "頭條報導第一段（約130-160字，詳細說明今天發生的真實事件經過）",
+    "paragraph2": "頭條報導第二段（約130-160字，補充影響與後續發展）",
+    "commentary": "預言家日報總編輯的一句犀利點評",
+    "photoCaption": "這張動態照片的圖說（約20字）",
+    "imagePrompt": "A detailed English prompt to generate a dramatic vintage 1920s black-and-white newspaper photograph depicting the essence of this main news story, cinematic lighting, expressive action, no text in image"
+  },
+  "sideNews": [
+    {
+      "category": "分類標籤（如：國際風雲）",
+      "title": "第二則重要新聞標題",
+      "summary": "新聞摘要（約90字）",
+      "fullText": "完整新聞報導（約220字）"
+    },
+    {
+      "category": "分類標籤（如：科技前沿）",
+      "title": "第三則重要新聞標題",
+      "summary": "新聞摘要（約90字）",
+      "fullText": "完整新聞報導（約220字）"
+    },
+    {
+      "category": "分類標籤（如：古靈閣財經）",
+      "title": "第四則重要新聞標題",
+      "summary": "新聞摘要（約80字）",
+      "fullText": "完整新聞報導（約200字）"
+    },
+    {
+      "category": "分類標籤（如：社會奇聞）",
+      "title": "第五則重要新聞標題",
+      "summary": "新聞摘要（約80字）",
+      "fullText": "完整新聞報導（約200字）"
+    }
+  ]
+}`;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                }
+            };
+
+            const result = await fetchWithRetry(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const candidate = result.candidates?.[0];
+            let rawText = candidate?.content?.parts?.[0]?.text || "";
+            
+            // 清理可能出現的 markdown code block 符號
+            rawText = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/i, '').trim();
+            const parsedData = JSON.parse(rawText);
+
+            // 提取搜尋來源標題
+            let sources = [];
+            const groundingMetadata = candidate?.groundingMetadata;
+            if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                sources = groundingMetadata.groundingAttributions
+                    .map(attr => attr.web?.title)
+                    .filter(Boolean);
+            }
+            parsedData.sources = [...new Set(sources)].slice(0, 4);
+
+            return parsedData;
+        }
+
+        // 步驟 2：使用 Gemini 圖像生成模型為頭版製作復古新聞攝影圖片（搭配 CSS 魔法動態效果）
+        async function generateMagicalNewsPhoto(imagePrompt) {
+            const photoImg = document.getElementById('main-moving-photo');
+            const badge = document.getElementById('photo-generating-badge');
+            
+            badge.classList.remove('hidden');
+            photoImg.classList.add('hidden');
+
+            try {
+                const fullPrompt = `${imagePrompt}. Style of an authentic 1930s vintage black and white newspaper photograph, dramatic editorial photojournalism, slight film grain, high contrast, atmospheric, no words or text.`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{
+                        parts: [{ text: fullPrompt }]
+                    }],
+                    generationConfig: {
+                        responseModalities: ['TEXT', 'IMAGE']
+                    }
+                };
+
+                const result = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const base64Data = result?.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                if (base64Data) {
+                    const imageUrl = `data:image/png;base64,${base64Data}`;
+                    photoImg.src = imageUrl;
+                    photoImg.onload = () => {
+                        badge.classList.add('hidden');
+                        photoImg.classList.remove('hidden');
+                    };
+                    return imageUrl;
+                }
+            } catch (e) {
+                // 若圖片生成失敗，使用復古魔法插畫 SVG 備援
+                badge.innerHTML = `<i class="fa-solid fa-hat-wizard text-4xl mb-2 text-amber-300"></i><span class="text-xs">魔法顯影受到干擾，已切換為魔法部檔案影像</span>`;
+            }
+            return null;
+        }
+
+        // 將新聞資料渲染至報紙版面上
+        function renderNewspaper(data, cachedImageUrl = null) {
+            currentNewsData = data;
+
+            document.getElementById('magic-weather').textContent = `今日天象：${data.weather || '魔法部晴空萬里'}`;
+            document.getElementById('daily-horoscope').textContent = `「${data.horoscope}」`;
+            document.getElementById('headline-tag').textContent = data.headlineTag || '今日頭號震撼彈';
+
+            // 頭條新聞
+            document.getElementById('main-headline').textContent = data.mainNews.title;
+            document.getElementById('main-subheadline').textContent = data.mainNews.subtitle;
+            document.getElementById('main-article-p1').textContent = data.mainNews.paragraph1;
+            document.getElementById('main-article-p2').textContent = data.mainNews.paragraph2;
+            document.getElementById('prophet-commentary').textContent = data.mainNews.commentary;
+            document.getElementById('photo-caption').textContent = `▲ ${data.mainNews.photoCaption}`;
+
+            // 次要新聞 (4則)
+            const side = data.sideNews || [];
+            if (side[0]) {
+                document.getElementById('news2-category').textContent = side[0].category;
+                document.getElementById('news2-title').textContent = side[0].title;
+                document.getElementById('news2-summary').textContent = side[0].summary;
+            }
+            if (side[1]) {
+                document.getElementById('news3-category').textContent = side[1].category;
+                document.getElementById('news3-title').textContent = side[1].title;
+                document.getElementById('news3-summary').textContent = side[1].summary;
+            }
+            if (side[2]) {
+                document.getElementById('news4-category').textContent = side[2].category;
+                document.getElementById('news4-title').textContent = side[2].title;
+                document.getElementById('news4-summary').textContent = side[2].summary;
+            }
+            if (side[3]) {
+                document.getElementById('news5-category').textContent = side[3].category;
+                document.getElementById('news5-title').textContent = side[3].title;
+                document.getElementById('news5-summary').textContent = side[3].summary;
+            }
+
+            // 來源出處
+            if (data.sources && data.sources.length > 0) {
+                document.getElementById('news-sources').textContent = data.sources.join(' • ');
+            }
+
+            // 顯示報紙內容，隱藏載入動畫
+            document.getElementById('loading-overlay').classList.add('hidden');
+            document.getElementById('error-box').classList.add('hidden');
+            document.getElementById('news-content').classList.remove('hidden');
+
+            // 處理動態相片
+            if (cachedImageUrl) {
+                const photoImg = document.getElementById('main-moving-photo');
+                const badge = document.getElementById('photo-generating-badge');
+                photoImg.src = cachedImageUrl;
+                badge.classList.add('hidden');
+                photoImg.classList.remove('hidden');
+            } else if (data.mainNews.imagePrompt) {
+                generateMagicalNewsPhoto(data.mainNews.imagePrompt).then(imgUrl => {
+                    if (imgUrl) {
+                        // 嘗試將圖片存入今日快取（若容量允許）
+                        try {
+                            const region = document.getElementById('edition-region').value;
+                            const cacheKey = `daily_prophet_${getTodayKey()}_${region}`;
+                            const existing = JSON.parse(localStorage.getItem(cacheKey) || '{}');
+                            existing.imageUrl = imgUrl;
+                            localStorage.setItem(cacheKey, JSON.stringify(existing));
+                        } catch (e) {
+                            // 忽略 localStorage 容量限制錯誤
+                        }
+                    }
+                });
+            }
+        }
+
+        // 召喚今日報紙主流程（具備每日自動檢查與快取機制）
+        async function summonTodaysNewspaper(forceRefresh = false) {
+            const todayKey = getTodayKey();
+            const region = document.getElementById('edition-region').value;
+            const cacheKey = `daily_prophet_${todayKey}_${region}`;
+            const statusEl = document.getElementById('owl-status');
+
+            document.getElementById('current-date-display').textContent = formatMagicalDate();
+
+            // 檢查本地是否已有「今天」的新聞快取，確保每天第一次打開自動更新，同一天內秒開
+            if (!forceRefresh) {
+                try {
+                    const cachedRaw = localStorage.getItem(cacheKey);
+                    if (cachedRaw) {
+                        const cached = JSON.parse(cachedRaw);
+                        if (cached && cached.news) {
+                            statusEl.textContent = `貓頭鷹特快專遞：已為您送達今日 (${todayKey}) 最新版面`;
+                            renderNewspaper(cached.news, cached.imageUrl || null);
+                            return;
+                        }
+                    }
+                } catch (e) {
+                    // 快取讀取失敗則直接重新抓取
+                }
+            }
+
+            // 顯示載入中狀態
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            document.getElementById('news-content').classList.add('hidden');
+            document.getElementById('error-box').classList.add('hidden');
+            statusEl.textContent = `貓頭鷹正在飛往全球新聞現場採集 (${todayKey})...`;
+
+            try {
+                const newsData = await fetchTodaysNewsFromGemini(region);
+                
+                // 儲存今日新聞至 localStorage（並清除舊日期的快取以節省空間）
+                try {
+                    Object.keys(localStorage).forEach(k => {
+                        if (k.startsWith('daily_prophet_') && !k.includes(todayKey)) {
+                            localStorage.removeItem(k);
+                        }
+                    });
+                    localStorage.setItem(cacheKey, JSON.stringify({ news: newsData }));
+                } catch (e) {}
+
+                statusEl.textContent = `貓頭鷹特快專遞：今日 (${todayKey}) 頭條已新鮮出爐！`;
+                renderNewspaper(newsData, null);
+            } catch (error) {
+                document.getElementById('loading-overlay').classList.add('hidden');
+                document.getElementById('error-box').classList.remove('hidden');
+                document.getElementById('error-message').textContent = `魔法連線暫時中斷（${error.message}），請點擊重新召喚。`;
+                statusEl.textContent = `貓頭鷹派報受阻`;
+            }
+        }
+
+        // 開啟側欄報導完整閱讀視窗
+        function openArticleModal(index) {
+            if (!currentNewsData || !currentNewsData.sideNews) return;
+            const article = currentNewsData.sideNews[index - 1];
+            if (!article) return;
+
+            document.getElementById('modal-category').textContent = `【${article.category}】 • 預言家日報專題報導`;
+            document.getElementById('modal-title').textContent = article.title;
+            document.getElementById('modal-body').textContent = article.fullText || article.summary;
+            
+            const modal = document.getElementById('article-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeArticleModal() {
+            const modal = document.getElementById('article-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // 點擊視窗外部關閉彈窗
+        document.getElementById('article-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeArticleModal();
+            }
+        });
+
+        // 切換新聞版面主題時自動更新
+        document.getElementById('edition-region').addEventListener('change', () => {
+            summonTodaysNewspaper(false);
+        });
+
+        // 跨日自動偵測機制：如果網頁一直開著直到午夜 12 點過後，會自動重新派報
+        let loadedDate = getTodayKey();
+        setInterval(() => {
+            const nowKey = getTodayKey();
+            if (nowKey !== loadedDate) {
+                loadedDate = nowKey;
+                summonTodaysNewspaper(true);
+            }
+        }, 60000);
+
+        // 網頁載入完成後立即召喚今日報紙
+        window.onload = function() {
+            summonTodaysNewspaper(false);
+        };
+    </script>
+</body>
+</html>
