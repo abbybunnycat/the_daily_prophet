@@ -641,37 +641,62 @@
 
             try {
                 const fullPrompt = `${imagePrompt}. Style of an authentic 1930s vintage black and white newspaper photograph, dramatic editorial photojournalism, slight film grain, high contrast, atmospheric, no words or text.`;
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-image:generateContent?key=${activeKey}`;
-                const payload = {
-                    contents: [{
-                        parts: [{ text: fullPrompt }]
-                    }],
-                    generationConfig: {
-                        responseModalities: ['TEXT', 'IMAGE']
+                
+                // 依序嘗試公開 Google AI Studio API 支援的生圖模型
+                const modelsToTry = [
+                    'gemini-2.5-flash-image',
+                    'gemini-2.0-flash-exp-image-generation'
+                ];
+
+                let dataUrl = null;
+                let lastErrorMsg = '';
+
+                for (const modelName of modelsToTry) {
+                    try {
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+                        const payload = {
+                            contents: [{
+                                parts: [{ text: fullPrompt }]
+                            }]
+                        };
+
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        const result = await response.json();
+                        if (!response.ok) {
+                            lastErrorMsg = result?.error?.message || `HTTP ${response.status}`;
+                            continue;
+                        }
+
+                        const parts = result.candidates?.[0]?.content?.parts || [];
+                        const imagePart = parts.find(p => p.inlineData && p.inlineData.data);
+                        if (imagePart) {
+                            const mimeType = imagePart.inlineData.mimeType || 'image/png';
+                            dataUrl = `data:${mimeType};base64,${imagePart.inlineData.data}`;
+                            break;
+                        } else {
+                            lastErrorMsg = '模型未回傳影像資料（可能觸發安全過濾）';
+                        }
+                    } catch (innerErr) {
+                        lastErrorMsg = innerErr.message;
                     }
-                };
+                }
 
-                const result = await fetchWithRetry(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const parts = result.candidates?.[0]?.content?.parts || [];
-                const imagePart = parts.find(p => p.inlineData && p.inlineData.data);
-                if (imagePart) {
-                    const mimeType = imagePart.inlineData.mimeType || 'image/png';
-                    const dataUrl = `data:${mimeType};base64,${imagePart.inlineData.data}`;
+                if (dataUrl) {
                     photoImg.src = dataUrl;
                     photoImg.classList.remove('hidden');
                     badge.classList.add('hidden');
                     return dataUrl;
                 } else {
-                    badge.innerHTML = `<i class="fa-solid fa-camera-retro text-3xl mb-2 text-amber-300"></i><span class="text-xs px-4">魔法攝影師底片顯影失敗，暫不顯示動態相片</span>`;
+                    badge.innerHTML = `<i class="fa-solid fa-camera-retro text-3xl mb-2 text-amber-300"></i><span class="text-xs px-4">魔法攝影師顯影失敗：${lastErrorMsg || '請確認 API Key 是否有開啟生圖配額'}</span>`;
                     return null;
                 }
             } catch (err) {
-                badge.innerHTML = `<i class="fa-solid fa-camera-retro text-3xl mb-2 text-amber-300"></i><span class="text-xs px-4">魔法攝影師忙碌中，暫無法生成現場影像</span>`;
+                badge.innerHTML = `<i class="fa-solid fa-camera-retro text-3xl mb-2 text-amber-300"></i><span class="text-xs px-4">魔法攝影師忙碌中（${err.message}）</span>`;
                 return null;
             }
         }
